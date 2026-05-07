@@ -1,4 +1,17 @@
 {
-  "videos": [],
-  "selected_video_id": null
+  "videos": [
+    {
+      "id": "c9e399f8-b47b-43cd-ab44-31f63fbb380e",
+      "videoId": "Nv91NMabpZc",
+      "url": "https://www.youtube.com/watch?v=Nv91NMabpZc",
+      "title": "老梁：打破认知 你身边不知好歹的人",
+      "thumbnail": "https://img.youtube.com/vi/Nv91NMabpZc/mqdefault.jpg",
+      "status": "in_progress",
+      "added_at": "2026-05-07T09:52:38.951Z",
+      "last_opened_at": null,
+      "notes": "",
+      "notes_updated_at": null
+    }
+  ],
+  "selected_video_id": "c9e399f8-b47b-43cd-ab44-31f63fbb380e"
 }
