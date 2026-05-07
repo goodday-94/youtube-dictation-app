@@ -17,9 +17,13 @@
   <div id="sidebar">
     <div id="sidebar-header">
       My videos
-      <button id="btn-add" title="Add video">+</button>
+      <div class="header-btns">
+        <button id="btn-settings" title="GitHub Sync settings">⚙</button>
+        <button id="btn-add" title="Add video">+</button>
+      </div>
     </div>
     <div id="video-list"></div>
+    <div id="sync-status" class="sync-idle">Not configured</div>
   </div>
 
   <!-- Sidebar ↔ Main drag handle -->
@@ -68,7 +72,7 @@
 </div>
 
 <!-- ── Add video modal ──────────────────────────────────── -->
-<div id="modal-overlay">
+<div id="modal-overlay" class="overlay">
   <div id="modal">
     <h2>Add a YouTube video</h2>
     <input id="modal-url" type="url" placeholder="https://www.youtube.com/watch?v=…" autocomplete="off">
@@ -76,6 +80,30 @@
     <div id="modal-actions">
       <button class="btn btn-ghost" id="btn-modal-cancel">Cancel</button>
       <button class="btn btn-primary" id="btn-modal-add">Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Settings modal ───────────────────────────────────── -->
+<div id="settings-overlay" class="overlay">
+  <div id="settings-modal">
+    <h2>GitHub Sync</h2>
+    <div class="field">
+      <label>Personal Access Token</label>
+      <input id="gh-token" type="password" placeholder="ghp_…" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>GitHub Owner</label>
+      <input id="gh-owner" type="text" placeholder="QilinZhang94">
+    </div>
+    <div class="field">
+      <label>Repository</label>
+      <input id="gh-repo" type="text" placeholder="youtube-dictation-app">
+    </div>
+    <div id="settings-msg"></div>
+    <div id="modal-actions">
+      <button class="btn btn-ghost" id="btn-settings-cancel">Cancel</button>
+      <button class="btn btn-primary" id="btn-settings-save">Save &amp; Test</button>
     </div>
   </div>
 </div>

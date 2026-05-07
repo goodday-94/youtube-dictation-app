@@ -1,4 +1,31 @@
-// ── YouTube IFrame API bootstrap ──────────────────────────────────────────────
+// ── DOM refs ──────────────────────────────────────────────────────────────────
+const videoList       = document.getElementById('video-list');
+const notes           = document.getElementById('notes');
+const statusSelect    = document.getElementById('status-select');
+const metaAdded       = document.getElementById('meta-added');
+const saveIndicator   = document.getElementById('save-indicator');
+const modalOverlay    = document.getElementById('modal-overlay');
+const modalUrl        = document.getElementById('modal-url');
+const modalError      = document.getElementById('modal-error');
+const btnAdd          = document.getElementById('btn-add');
+const btnModalAdd     = document.getElementById('btn-modal-add');
+const btnModalCancel  = document.getElementById('btn-modal-cancel');
+const btnDeleteVideo  = document.getElementById('btn-delete-video');
+const btnPlay         = document.getElementById('btn-play');
+const speedSelect     = document.getElementById('speed-select');
+const sidebar         = document.getElementById('sidebar');
+const playerWrap      = document.getElementById('player-wrap');
+const syncStatus      = document.getElementById('sync-status');
+const btnSettings     = document.getElementById('btn-settings');
+const settingsOverlay = document.getElementById('settings-overlay');
+const ghTokenInput    = document.getElementById('gh-token');
+const ghOwnerInput    = document.getElementById('gh-owner');
+const ghRepoInput     = document.getElementById('gh-repo');
+const settingsMsg     = document.getElementById('settings-msg');
+const btnSettingsSave = document.getElementById('btn-settings-save');
+const btnSettingsCancel = document.getElementById('btn-settings-cancel');
+
+// ── YouTube IFrame API ────────────────────────────────────────────────────────
 let ytReady = false;
 let ytPlayer = null;
 let pendingVideoId = null;
@@ -11,22 +38,17 @@ window.onYouTubeIframeAPIReady = function () {
 function loadYTPlayer(videoId) {
   if (!ytReady) { pendingVideoId = videoId; return; }
   pendingVideoId = null;
-
   document.getElementById('empty-player').style.display = 'none';
 
-  if (ytPlayer) {
-    ytPlayer.cueVideoById(videoId);
-    return;
-  }
+  if (ytPlayer) { ytPlayer.cueVideoById(videoId); return; }
 
   const wrap = document.getElementById('player-wrap');
-  let playerEl = document.getElementById('yt-player');
-  if (!playerEl) {
-    playerEl = document.createElement('div');
-    playerEl.id = 'yt-player';
-    wrap.appendChild(playerEl);
+  let el = document.getElementById('yt-player');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'yt-player';
+    wrap.appendChild(el);
   }
-
   ytPlayer = new YT.Player('yt-player', {
     videoId,
     playerVars: { cc_load_policy: 0, rel: 0, modestbranding: 1 },
@@ -34,23 +56,27 @@ function loadYTPlayer(videoId) {
   });
 }
 
-// ── DOM refs ──────────────────────────────────────────────────────────────────
-const videoList      = document.getElementById('video-list');
-const notes          = document.getElementById('notes');
-const statusSelect   = document.getElementById('status-select');
-const metaAdded      = document.getElementById('meta-added');
-const saveIndicator  = document.getElementById('save-indicator');
-const modalOverlay   = document.getElementById('modal-overlay');
-const modalUrl       = document.getElementById('modal-url');
-const modalError     = document.getElementById('modal-error');
-const btnAdd         = document.getElementById('btn-add');
-const btnModalAdd    = document.getElementById('btn-modal-add');
-const btnModalCancel = document.getElementById('btn-modal-cancel');
-const btnDeleteVideo = document.getElementById('btn-delete-video');
-const btnPlay        = document.getElementById('btn-play');
-const speedSelect    = document.getElementById('speed-select');
-const sidebar        = document.getElementById('sidebar');
-const playerWrap     = document.getElementById('player-wrap');
+// ── Player controls ───────────────────────────────────────────────────────────
+function onPlayerStateChange(e) {
+  btnPlay.textContent = e.data === YT.PlayerState.PLAYING ? '⏸' : '▶';
+}
+
+btnPlay.addEventListener('click', () => {
+  if (!ytPlayer) return;
+  ytPlayer.getPlayerState() === YT.PlayerState.PLAYING
+    ? ytPlayer.pauseVideo()
+    : ytPlayer.playVideo();
+});
+
+speedSelect.addEventListener('change', () => {
+  if (ytPlayer) ytPlayer.setPlaybackRate(parseFloat(speedSelect.value));
+});
+
+function enableControls()  { btnPlay.disabled = false; speedSelect.disabled = false; }
+function disableControls() {
+  btnPlay.disabled = true; btnPlay.textContent = '▶';
+  speedSelect.disabled = true; speedSelect.value = '1';
+}
 
 // ── Utilities ─────────────────────────────────────────────────────────────────
 function parseVideoId(url) {
@@ -67,66 +93,64 @@ function formatDate(iso) {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-const STATUS_LABELS = {
-  todo: 'Todo',
-  in_progress: 'In progress',
-  finished: 'Finished',
-  redo: 'Redo',
-};
-
-// ── Player controls ───────────────────────────────────────────────────────────
-function onPlayerStateChange(e) {
-  if (e.data === YT.PlayerState.PLAYING) {
-    btnPlay.textContent = '⏸ Pause';
-  } else {
-    btnPlay.textContent = '▶ Play';
-  }
-}
-
-btnPlay.addEventListener('click', () => {
-  if (!ytPlayer) return;
-  if (ytPlayer.getPlayerState() === YT.PlayerState.PLAYING) {
-    ytPlayer.pauseVideo();
-  } else {
-    ytPlayer.playVideo();
-  }
-});
-
-speedSelect.addEventListener('change', () => {
-  if (ytPlayer) ytPlayer.setPlaybackRate(parseFloat(speedSelect.value));
-});
-
-function enableControls() {
-  btnPlay.disabled = false;
-  speedSelect.disabled = false;
-}
-
-function disableControls() {
-  btnPlay.disabled = true;
-  btnPlay.textContent = '▶ Play';
-  speedSelect.disabled = true;
-  speedSelect.value = '1';
-}
+const STATUS_LABELS = { todo: 'Todo', in_progress: 'In progress', finished: 'Finished', redo: 'Redo' };
 
 function debounce(fn, ms) {
-  let timer;
-  return (...args) => {
-    clearTimeout(timer);
-    timer = setTimeout(() => fn(...args), ms);
-  };
+  let t;
+  return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 // ── State ─────────────────────────────────────────────────────────────────────
 let currentVideoId = null;
+let currentSha = null;
 
-// ── Sidebar rendering ─────────────────────────────────────────────────────────
+// ── GitHub sync ───────────────────────────────────────────────────────────────
+function setSyncStatus(state, text) {
+  syncStatus.className = 'sync-' + state;
+  syncStatus.textContent = text;
+}
+
+async function pullFromGitHub() {
+  setSyncStatus('syncing', 'Syncing…');
+  try {
+    const result = await githubFetch();
+    if (!result) { setSyncStatus('idle', 'Not configured'); return false; }
+    currentSha = result.sha;
+    saveData(result.data);
+    setSyncStatus('ok', 'Synced');
+    return true;
+  } catch (e) {
+    setSyncStatus('error', 'Sync failed');
+    return false;
+  }
+}
+
+async function pushToGitHubNow() {
+  const s = getGHSettings();
+  if (!s?.token) return;
+  setSyncStatus('syncing', 'Syncing…');
+  try {
+    const data = loadData();
+    currentSha = await githubPush(data, currentSha);
+    setSyncStatus('ok', 'Synced');
+  } catch {
+    setSyncStatus('error', 'Sync failed');
+  }
+}
+
+const debouncedGHSync = debounce(pushToGitHubNow, 3000);
+
+// ── Sidebar ───────────────────────────────────────────────────────────────────
 function renderSidebar() {
   const videos = getVideos();
   videoList.innerHTML = '';
   videos.forEach(v => {
     const item = document.createElement('div');
     item.className = 'video-item' + (v.id === currentVideoId ? ' selected' : '');
-    item.dataset.id = v.id;
     item.innerHTML = `
       <img src="${v.thumbnail}" alt="" loading="lazy">
       <div class="video-meta">
@@ -138,31 +162,6 @@ function renderSidebar() {
   });
 }
 
-function escHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-// ── Delete video ──────────────────────────────────────────────────────────────
-btnDeleteVideo.addEventListener('click', () => {
-  if (!currentVideoId) return;
-  const video = findVideo(currentVideoId);
-  if (!video) return;
-  if (!confirm(`Delete "${video.title}"?\nThis will remove the video and all notes.`)) return;
-  deleteVideo(currentVideoId);
-  currentVideoId = null;
-  notes.value = '';
-  notes.disabled = true;
-  metaAdded.textContent = '';
-  saveIndicator.textContent = '';
-  statusSelect.value = 'todo';
-  updateStatusSelectStyle();
-  btnDeleteVideo.style.display = 'none';
-  disableControls();
-  document.getElementById('empty-player').style.display = 'flex';
-  if (ytPlayer) ytPlayer.stopVideo();
-  renderSidebar();
-});
-
 // ── Notes save ────────────────────────────────────────────────────────────────
 function flushSaveNotes() {
   if (!currentVideoId) return;
@@ -173,22 +172,16 @@ function flushSaveNotes() {
   upsertVideo(video);
 }
 
-function showSaving() {
-  saveIndicator.textContent = 'Saving…';
-  saveIndicator.className = 'saving';
-}
-function showSaved() {
-  saveIndicator.textContent = 'Saved ✓';
-  saveIndicator.className = 'saved';
-}
-
 const debouncedSave = debounce(() => {
   flushSaveNotes();
-  showSaved();
+  saveIndicator.textContent = 'Saved ✓';
+  saveIndicator.className = 'saved';
+  debouncedGHSync();
 }, 1500);
 
 notes.addEventListener('input', () => {
-  showSaving();
+  saveIndicator.textContent = 'Saving…';
+  saveIndicator.className = 'saving';
   debouncedSave();
 });
 
@@ -201,6 +194,7 @@ statusSelect.addEventListener('change', () => {
   upsertVideo(video);
   updateStatusSelectStyle();
   renderSidebar();
+  pushToGitHubNow();
 });
 
 function updateStatusSelectStyle() {
@@ -217,7 +211,11 @@ function selectVideo(id) {
   const video = findVideo(id);
   if (!video) return;
 
-  if (video.status === 'todo') video.status = 'in_progress';
+  if (video.status === 'todo') {
+    video.status = 'in_progress';
+    upsertVideo(video);
+    pushToGitHubNow();
+  }
   video.last_opened_at = new Date().toISOString();
   upsertVideo(video);
 
@@ -230,34 +228,59 @@ function selectVideo(id) {
   saveIndicator.textContent = '';
   btnDeleteVideo.style.display = 'inline-block';
   enableControls();
-
   renderSidebar();
 }
 
+// ── Delete video ──────────────────────────────────────────────────────────────
+btnDeleteVideo.addEventListener('click', () => {
+  if (!currentVideoId) return;
+  const video = findVideo(currentVideoId);
+  if (!video) return;
+  if (!confirm(`Delete "${video.title}"?\nThis will remove the video and all notes.`)) return;
+
+  deleteVideo(currentVideoId);
+  currentVideoId = null;
+  notes.value = ''; notes.disabled = true;
+  metaAdded.textContent = ''; saveIndicator.textContent = '';
+  statusSelect.value = 'todo'; updateStatusSelectStyle();
+  btnDeleteVideo.style.display = 'none';
+  disableControls();
+  document.getElementById('empty-player').style.display = 'flex';
+  if (ytPlayer) ytPlayer.stopVideo();
+  renderSidebar();
+  pushToGitHubNow();
+});
+
 // ── Add video modal ───────────────────────────────────────────────────────────
-btnAdd.addEventListener('click', openModal);
-btnModalCancel.addEventListener('click', closeModal);
-modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) closeModal(); });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+btnAdd.addEventListener('click', () => openOverlay(modalOverlay));
+btnModalCancel.addEventListener('click', () => closeOverlay(modalOverlay));
+modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) closeOverlay(modalOverlay); });
+
+function openOverlay(el)  { el.classList.add('open'); }
+function closeOverlay(el) { el.classList.remove('open'); }
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeOverlay(modalOverlay);
+    closeOverlay(settingsOverlay);
+  }
+});
 
 function openModal() {
-  modalUrl.value = '';
-  modalError.textContent = '';
+  modalUrl.value = ''; modalError.textContent = '';
   btnModalAdd.disabled = false;
-  modalOverlay.classList.add('open');
+  openOverlay(modalOverlay);
   setTimeout(() => modalUrl.focus(), 50);
 }
 
-function closeModal() {
-  modalOverlay.classList.remove('open');
-}
+btnAdd.removeEventListener('click', () => openOverlay(modalOverlay));
+btnAdd.addEventListener('click', openModal);
 
 modalUrl.addEventListener('keydown', e => { if (e.key === 'Enter') btnModalAdd.click(); });
 
 btnModalAdd.addEventListener('click', async () => {
   const url = modalUrl.value.trim();
   if (!url) { modalError.textContent = 'Please paste a YouTube URL.'; return; }
-
   const videoId = parseVideoId(url);
   if (!videoId) { modalError.textContent = 'Could not parse a YouTube video ID from that URL.'; return; }
 
@@ -267,86 +290,127 @@ btnModalAdd.addEventListener('click', async () => {
   let title = 'YouTube video';
   try {
     const res = await fetch(`https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`);
-    if (res.ok) {
-      const json = await res.json();
-      title = json.title || title;
-    }
+    if (res.ok) { const j = await res.json(); title = j.title || title; }
   } catch { /* file:// fallback */ }
 
   const newVideo = {
-    id: crypto.randomUUID(),
-    videoId,
-    url,
-    title,
+    id: crypto.randomUUID(), videoId, url, title,
     thumbnail: `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`,
-    status: 'todo',
-    added_at: new Date().toISOString(),
-    last_opened_at: null,
-    notes: '',
-    notes_updated_at: null,
+    status: 'todo', added_at: new Date().toISOString(),
+    last_opened_at: null, notes: '', notes_updated_at: null,
   };
 
   upsertVideo(newVideo);
   renderSidebar();
-  closeModal();
+  closeOverlay(modalOverlay);
   selectVideo(newVideo.id);
+  pushToGitHubNow();
+});
+
+// ── Settings modal ────────────────────────────────────────────────────────────
+btnSettings.addEventListener('click', () => {
+  const s = getGHSettings() || {};
+  ghTokenInput.value = s.token || '';
+  ghOwnerInput.value = s.owner || '';
+  ghRepoInput.value  = s.repo  || '';
+  settingsMsg.textContent = ''; settingsMsg.className = '';
+  openOverlay(settingsOverlay);
+  setTimeout(() => ghTokenInput.focus(), 50);
+});
+
+btnSettingsCancel.addEventListener('click', () => closeOverlay(settingsOverlay));
+settingsOverlay.addEventListener('click', e => { if (e.target === settingsOverlay) closeOverlay(settingsOverlay); });
+
+btnSettingsSave.addEventListener('click', async () => {
+  const token = ghTokenInput.value.trim();
+  const owner = ghOwnerInput.value.trim();
+  const repo  = ghRepoInput.value.trim();
+  if (!token || !owner || !repo) {
+    settingsMsg.textContent = 'All fields required.'; settingsMsg.className = 'error'; return;
+  }
+
+  btnSettingsSave.disabled = true;
+  settingsMsg.textContent = 'Testing connection…'; settingsMsg.className = '';
+
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${owner}/${repo}/contents/data.json`,
+      { headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github.v3+json' } }
+    );
+    if (res.status === 401) throw new Error('Invalid token.');
+    if (res.status === 404 && res.headers.get('x-github-request-id')) {
+      // repo not found
+      throw new Error('Repo not found or token has no access.');
+    }
+    // 404 on data.json is fine — file just doesn't exist yet
+    saveGHSettings({ token, owner, repo });
+    settingsMsg.textContent = '✓ Connected!'; settingsMsg.className = 'ok';
+    setTimeout(() => closeOverlay(settingsOverlay), 800);
+    // Pull latest data from GitHub
+    const pulled = await pullFromGitHub();
+    if (pulled) renderSidebar();
+  } catch (e) {
+    settingsMsg.textContent = e.message || 'Connection failed.'; settingsMsg.className = 'error';
+  } finally {
+    btnSettingsSave.disabled = false;
+  }
 });
 
 // ── Drag resize ───────────────────────────────────────────────────────────────
-function initDragX(handleEl, getSize, setSize, min, max) {
-  let dragging = false, startX, startSize;
-  handleEl.addEventListener('mousedown', e => {
-    dragging = true;
-    startX = e.clientX;
-    startSize = getSize();
-    handleEl.classList.add('dragging');
+function initDragX(handle, getW, setW, min, max) {
+  let dragging = false, startX, startW;
+  handle.addEventListener('mousedown', e => {
+    dragging = true; startX = e.clientX; startW = getW();
+    handle.classList.add('dragging');
     document.body.style.cursor = 'col-resize';
     document.body.style.userSelect = 'none';
     e.preventDefault();
   });
   document.addEventListener('mousemove', e => {
     if (!dragging) return;
-    setSize(Math.max(min, Math.min(max, startSize + e.clientX - startX)));
+    setW(Math.max(min, Math.min(max, startW + e.clientX - startX)));
   });
   document.addEventListener('mouseup', () => {
     if (!dragging) return;
-    dragging = false;
-    handleEl.classList.remove('dragging');
-    document.body.style.cursor = '';
-    document.body.style.userSelect = '';
+    dragging = false; handle.classList.remove('dragging');
+    document.body.style.cursor = ''; document.body.style.userSelect = '';
   });
 }
 
-function initDragY(handleEl, getSize, setSize, min, max) {
-  let dragging = false, startY, startSize;
-  handleEl.addEventListener('mousedown', e => {
-    dragging = true;
-    startY = e.clientY;
-    startSize = getSize();
-    handleEl.classList.add('dragging');
+function initDragY(handle, getH, setH, min, max) {
+  let dragging = false, startY, startH;
+  handle.addEventListener('mousedown', e => {
+    dragging = true; startY = e.clientY; startH = getH();
+    handle.classList.add('dragging');
     document.body.style.cursor = 'row-resize';
     document.body.style.userSelect = 'none';
     e.preventDefault();
   });
   document.addEventListener('mousemove', e => {
     if (!dragging) return;
-    setSize(Math.max(min, Math.min(max, startSize + e.clientY - startY)));
+    setH(Math.max(min, Math.min(max, startH + e.clientY - startY)));
   });
   document.addEventListener('mouseup', () => {
     if (!dragging) return;
-    dragging = false;
-    handleEl.classList.remove('dragging');
-    document.body.style.cursor = '';
-    document.body.style.userSelect = '';
+    dragging = false; handle.classList.remove('dragging');
+    document.body.style.cursor = ''; document.body.style.userSelect = '';
   });
 }
 
-// ── Page unload flush ─────────────────────────────────────────────────────────
+// ── Page unload ───────────────────────────────────────────────────────────────
 window.addEventListener('beforeunload', flushSaveNotes);
 
 // ── Init ──────────────────────────────────────────────────────────────────────
-function init() {
+async function init() {
   notes.disabled = true;
+
+  // Try GitHub first, fall back to localStorage
+  const pulled = await pullFromGitHub();
+  if (!pulled) {
+    const s = getGHSettings();
+    if (!s?.token) setSyncStatus('idle', 'Not configured');
+  }
+
   renderSidebar();
 
   const lastId = getSelectedId();
@@ -356,17 +420,13 @@ function init() {
     document.getElementById('sidebar-resize'),
     () => sidebar.offsetWidth,
     w => { sidebar.style.width = w + 'px'; },
-    140, 480
+    140, 600
   );
-
   initDragY(
     document.getElementById('player-resize'),
     () => playerWrap.offsetHeight,
-    h => {
-      playerWrap.style.flex = 'none';
-      playerWrap.style.height = h + 'px';
-    },
-    100, 520
+    h => { playerWrap.style.flex = 'none'; playerWrap.style.height = h + 'px'; },
+    100, 600
   );
 }
 
