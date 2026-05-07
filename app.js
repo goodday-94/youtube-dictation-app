@@ -131,7 +131,9 @@ async function pushToGitHubNow() {
   try {
     const data = loadData();
     currentSha = await githubPush(data, currentSha);
-  } catch { /* silent */ }
+  } catch (e) {
+    console.error('GitHub sync failed:', e.message);
+  }
 }
 
 const debouncedGHSync = debounce(pushToGitHubNow, 3000);
