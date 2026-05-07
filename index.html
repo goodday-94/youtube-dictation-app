@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dictation Practice</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    option { background: #272727; color: #e4e4e4; }
+  </style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ── Sidebar ──────────────────────────────────────────── -->
+  <div id="sidebar">
+    <div id="sidebar-header">
+      My videos
+      <button id="btn-add" title="Add video">+</button>
+    </div>
+    <div id="video-list"></div>
+  </div>
+
+  <!-- Sidebar ↔ Main drag handle -->
+  <div id="sidebar-resize" class="drag-handle-x"></div>
+
+  <!-- ── Main panel ───────────────────────────────────────── -->
+  <div id="main">
+
+    <!-- Player -->
+    <div id="player-wrap">
+      <div id="empty-player">Select a video to begin</div>
+    </div>
+
+    <!-- Player ↕ Notes drag handle -->
+    <div id="player-resize" class="drag-handle-y"></div>
+
+    <!-- Action bar -->
+    <div id="action-bar">
+      <button id="btn-play" disabled>▶</button>
+      <select id="speed-select" disabled title="Playback speed">
+        <option value="0.5">0.5×</option>
+        <option value="0.75">0.75×</option>
+        <option value="1" selected>1×</option>
+        <option value="1.25">1.25×</option>
+        <option value="1.5">1.5×</option>
+        <option value="2">2×</option>
+      </select>
+      <div class="bar-sep"></div>
+      <select id="status-select" class="status-todo">
+        <option value="todo">Todo</option>
+        <option value="in_progress">In progress</option>
+        <option value="finished">Finished</option>
+        <option value="redo">Redo</option>
+      </select>
+      <span id="meta-added"></span>
+      <span id="save-indicator"></span>
+      <button class="btn-delete" id="btn-delete-video" style="display:none">Delete</button>
+    </div>
+
+    <!-- Notes -->
+    <div id="notes-wrap">
+      <textarea id="notes" placeholder="Type what you hear…" spellcheck="false"></textarea>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── Add video modal ──────────────────────────────────── -->
+<div id="modal-overlay">
+  <div id="modal">
+    <h2>Add a YouTube video</h2>
+    <input id="modal-url" type="url" placeholder="https://www.youtube.com/watch?v=…" autocomplete="off">
+    <div id="modal-error"></div>
+    <div id="modal-actions">
+      <button class="btn btn-ghost" id="btn-modal-cancel">Cancel</button>
+      <button class="btn btn-primary" id="btn-modal-add">Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="storage.js"></script>
+<script src="https://www.youtube.com/iframe_api"></script>
+<script src="app.js"></script>
+
+</body>
+</html>
