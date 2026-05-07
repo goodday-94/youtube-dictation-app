@@ -13,65 +13,60 @@
 
 <div id="app">
 
-  <!-- ── Sidebar ──────────────────────────────────────────── -->
+  <!-- ── Sidebar ── -->
   <div id="sidebar">
     <div id="sidebar-header">
       My videos
       <div class="header-btns">
-        <button id="btn-settings" title="GitHub Sync settings">⚙</button>
+        <button id="btn-settings" title="Read only">🔑</button>
         <button id="btn-add" title="Add video">+</button>
       </div>
     </div>
     <div id="video-list"></div>
-    <div id="sync-status" class="sync-idle">Not configured</div>
   </div>
 
-  <!-- Sidebar ↔ Main drag handle -->
+  <!-- Sidebar ↔ Main drag handle (desktop only) -->
   <div id="sidebar-resize" class="drag-handle-x"></div>
 
-  <!-- ── Main panel ───────────────────────────────────────── -->
-  <div id="main">
-
-    <!-- Player -->
-    <div id="player-wrap">
-      <div id="empty-player">Select a video to begin</div>
-    </div>
-
-    <!-- Player ↕ Notes drag handle -->
-    <div id="player-resize" class="drag-handle-y"></div>
-
-    <!-- Action bar -->
-    <div id="action-bar">
-      <button id="btn-play" disabled>▶</button>
-      <select id="speed-select" disabled title="Playback speed">
-        <option value="0.5">0.5×</option>
-        <option value="0.75">0.75×</option>
-        <option value="1" selected>1×</option>
-        <option value="1.25">1.25×</option>
-        <option value="1.5">1.5×</option>
-        <option value="2">2×</option>
-      </select>
-      <div class="bar-sep"></div>
-      <select id="status-select" class="status-todo">
-        <option value="todo">Todo</option>
-        <option value="in_progress">In progress</option>
-        <option value="finished">Finished</option>
-        <option value="redo">Redo</option>
-      </select>
-      <span id="meta-added"></span>
-      <span id="save-indicator"></span>
-      <button class="btn-delete" id="btn-delete-video" style="display:none">Delete</button>
-    </div>
-
-    <!-- Notes -->
-    <div id="notes-wrap">
-      <textarea id="notes" placeholder="Type what you hear…" spellcheck="false"></textarea>
-    </div>
-
+  <!-- ── Player ── -->
+  <div id="player-wrap">
+    <div id="empty-player">Select a video to begin</div>
   </div>
+
+  <!-- Player ↕ Notes drag handle (desktop only) -->
+  <div id="player-resize" class="drag-handle-y"></div>
+
+  <!-- ── Action bar ── -->
+  <div id="action-bar">
+    <button id="btn-play" disabled>▶</button>
+    <select id="speed-select" disabled title="Playback speed">
+      <option value="0.5">0.5×</option>
+      <option value="0.75">0.75×</option>
+      <option value="1" selected>1×</option>
+      <option value="1.25">1.25×</option>
+      <option value="1.5">1.5×</option>
+      <option value="2">2×</option>
+    </select>
+    <div class="bar-sep"></div>
+    <select id="status-select" class="status-todo">
+      <option value="todo">Todo</option>
+      <option value="in_progress">In progress</option>
+      <option value="finished">Finished</option>
+      <option value="redo">Redo</option>
+    </select>
+    <span id="meta-added"></span>
+    <span id="save-indicator"></span>
+    <button class="btn-delete" id="btn-delete-video" style="display:none">Delete</button>
+  </div>
+
+  <!-- ── Notes ── -->
+  <div id="notes-wrap">
+    <textarea id="notes" placeholder="Type what you hear…" spellcheck="false"></textarea>
+  </div>
+
 </div>
 
-<!-- ── Add video modal ──────────────────────────────────── -->
+<!-- ── Add video modal ── -->
 <div id="modal-overlay" class="overlay">
   <div id="modal">
     <h2>Add a YouTube video</h2>
@@ -84,31 +79,22 @@
   </div>
 </div>
 
-<!-- ── Settings modal ───────────────────────────────────── -->
+<!-- ── Settings modal ── -->
 <div id="settings-overlay" class="overlay">
   <div id="settings-modal">
     <h2>GitHub Sync</h2>
     <div class="field">
-      <label>Personal Access Token</label>
+      <label>GitHub Token</label>
       <input id="gh-token" type="password" placeholder="ghp_…" autocomplete="off">
     </div>
-    <div class="field">
-      <label>GitHub Owner</label>
-      <input id="gh-owner" type="text" placeholder="QilinZhang94">
-    </div>
-    <div class="field">
-      <label>Repository</label>
-      <input id="gh-repo" type="text" placeholder="youtube-dictation-app">
-    </div>
     <div id="settings-msg"></div>
-    <div id="modal-actions">
+    <div class="modal-actions">
       <button class="btn btn-ghost" id="btn-settings-cancel">Cancel</button>
-      <button class="btn btn-primary" id="btn-settings-save">Save &amp; Test</button>
+      <button class="btn btn-primary" id="btn-settings-save">Save &amp; Sync</button>
     </div>
   </div>
 </div>
 
-<!-- Scripts -->
 <script src="storage.js"></script>
 <script src="https://www.youtube.com/iframe_api"></script>
 <script src="app.js"></script>

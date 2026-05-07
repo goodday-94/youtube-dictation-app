@@ -44,15 +44,17 @@ function deleteVideo(id) {
 }
 
 // ── GitHub settings ───────────────────────────────────────────────────────────
+const GH_OWNER = 'QilinZhang94';
+const GH_REPO  = 'youtube-dictation-app';
+
 function getGHSettings() {
-  try {
-    const raw = localStorage.getItem(GH_SETTINGS_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch { return null; }
+  const token = localStorage.getItem(GH_SETTINGS_KEY);
+  if (!token) return null;
+  return { token, owner: GH_OWNER, repo: GH_REPO };
 }
 
-function saveGHSettings(settings) {
-  localStorage.setItem(GH_SETTINGS_KEY, JSON.stringify(settings));
+function saveGHSettings({ token }) {
+  localStorage.setItem(GH_SETTINGS_KEY, token);
 }
 
 // ── GitHub API ────────────────────────────────────────────────────────────────

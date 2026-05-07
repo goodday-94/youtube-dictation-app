@@ -15,12 +15,9 @@ const btnPlay         = document.getElementById('btn-play');
 const speedSelect     = document.getElementById('speed-select');
 const sidebar         = document.getElementById('sidebar');
 const playerWrap      = document.getElementById('player-wrap');
-const syncStatus      = document.getElementById('sync-status');
 const btnSettings     = document.getElementById('btn-settings');
 const settingsOverlay = document.getElementById('settings-overlay');
 const ghTokenInput    = document.getElementById('gh-token');
-const ghOwnerInput    = document.getElementById('gh-owner');
-const ghRepoInput     = document.getElementById('gh-repo');
 const settingsMsg     = document.getElementById('settings-msg');
 const btnSettingsSave = document.getElementById('btn-settings-save');
 const btnSettingsCancel = document.getElementById('btn-settings-cancel');
@@ -109,22 +106,21 @@ let currentVideoId = null;
 let currentSha = null;
 
 // ── GitHub sync ───────────────────────────────────────────────────────────────
-function setSyncStatus(state, text) {
-  syncStatus.className = 'sync-' + state;
-  syncStatus.textContent = text;
+function updateKeyButton() {
+  const configured = !!getGHSettings()?.token;
+  btnSettings.classList.toggle('configured', configured);
+  btnSettings.classList.toggle('not-configured', !configured);
+  btnSettings.title = configured ? 'Sync configured — click to edit' : 'Read only — click to add token';
 }
 
 async function pullFromGitHub() {
-  setSyncStatus('syncing', 'Syncing…');
   try {
     const result = await githubFetch();
-    if (!result) { setSyncStatus('idle', 'Not configured'); return false; }
+    if (!result) return false;
     currentSha = result.sha;
     saveData(result.data);
-    setSyncStatus('ok', 'Synced');
     return true;
-  } catch (e) {
-    setSyncStatus('error', 'Sync failed');
+  } catch {
     return false;
   }
 }
@@ -132,14 +128,10 @@ async function pullFromGitHub() {
 async function pushToGitHubNow() {
   const s = getGHSettings();
   if (!s?.token) return;
-  setSyncStatus('syncing', 'Syncing…');
   try {
     const data = loadData();
     currentSha = await githubPush(data, currentSha);
-    setSyncStatus('ok', 'Synced');
-  } catch {
-    setSyncStatus('error', 'Sync failed');
-  }
+  } catch { /* silent */ }
 }
 
 const debouncedGHSync = debounce(pushToGitHubNow, 3000);
@@ -309,10 +301,8 @@ btnModalAdd.addEventListener('click', async () => {
 
 // ── Settings modal ────────────────────────────────────────────────────────────
 btnSettings.addEventListener('click', () => {
-  const s = getGHSettings() || {};
-  ghTokenInput.value = s.token || '';
-  ghOwnerInput.value = s.owner || '';
-  ghRepoInput.value  = s.repo  || '';
+  const s = getGHSettings();
+  ghTokenInput.value = s?.token || '';
   settingsMsg.textContent = ''; settingsMsg.className = '';
   openOverlay(settingsOverlay);
   setTimeout(() => ghTokenInput.focus(), 50);
@@ -323,30 +313,22 @@ settingsOverlay.addEventListener('click', e => { if (e.target === settingsOverla
 
 btnSettingsSave.addEventListener('click', async () => {
   const token = ghTokenInput.value.trim();
-  const owner = ghOwnerInput.value.trim();
-  const repo  = ghRepoInput.value.trim();
-  if (!token || !owner || !repo) {
-    settingsMsg.textContent = 'All fields required.'; settingsMsg.className = 'error'; return;
-  }
+  if (!token) { settingsMsg.textContent = 'Please enter a token.'; settingsMsg.className = 'error'; return; }
 
   btnSettingsSave.disabled = true;
-  settingsMsg.textContent = 'Testing connection…'; settingsMsg.className = '';
+  settingsMsg.textContent = 'Connecting…'; settingsMsg.className = '';
 
   try {
     const res = await fetch(
-      `https://api.github.com/repos/${owner}/${repo}/contents/data.json`,
+      `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/data.json`,
       { headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github.v3+json' } }
     );
     if (res.status === 401) throw new Error('Invalid token.');
-    if (res.status === 404 && res.headers.get('x-github-request-id')) {
-      // repo not found
-      throw new Error('Repo not found or token has no access.');
-    }
-    // 404 on data.json is fine — file just doesn't exist yet
-    saveGHSettings({ token, owner, repo });
+    if (res.status === 403) throw new Error('Token has no access to this repo.');
+    saveGHSettings({ token });
+    updateKeyButton();
     settingsMsg.textContent = '✓ Connected!'; settingsMsg.className = 'ok';
-    setTimeout(() => closeOverlay(settingsOverlay), 800);
-    // Pull latest data from GitHub
+    setTimeout(() => closeOverlay(settingsOverlay), 700);
     const pulled = await pullFromGitHub();
     if (pulled) renderSidebar();
   } catch (e) {
@@ -403,31 +385,30 @@ window.addEventListener('beforeunload', flushSaveNotes);
 // ── Init ──────────────────────────────────────────────────────────────────────
 async function init() {
   notes.disabled = true;
+  updateKeyButton();
 
-  // Try GitHub first, fall back to localStorage
   const pulled = await pullFromGitHub();
-  if (!pulled) {
-    const s = getGHSettings();
-    if (!s?.token) setSyncStatus('idle', 'Not configured');
-  }
 
   renderSidebar();
 
   const lastId = getSelectedId();
   if (lastId && findVideo(lastId)) selectVideo(lastId);
 
-  initDragX(
-    document.getElementById('sidebar-resize'),
-    () => sidebar.offsetWidth,
-    w => { sidebar.style.width = w + 'px'; },
-    140, 600
-  );
-  initDragY(
-    document.getElementById('player-resize'),
-    () => playerWrap.offsetHeight,
-    h => { playerWrap.style.flex = 'none'; playerWrap.style.height = h + 'px'; },
-    100, 600
-  );
+  if (window.innerWidth > 768) {
+    const appEl = document.getElementById('app');
+    initDragX(
+      document.getElementById('sidebar-resize'),
+      () => sidebar.offsetWidth,
+      w => { appEl.style.gridTemplateColumns = `${w}px 4px 1fr`; },
+      140, 600
+    );
+    initDragY(
+      document.getElementById('player-resize'),
+      () => playerWrap.offsetHeight,
+      h => { appEl.style.gridTemplateRows = `${h}px 4px auto 1fr`; },
+      100, 600
+    );
+  }
 }
 
 init();
