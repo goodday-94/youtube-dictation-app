@@ -44,7 +44,7 @@ function deleteVideo(id) {
 }
 
 // ── GitHub settings ───────────────────────────────────────────────────────────
-const GH_OWNER = 'QilinZhang94';
+const GH_OWNER = 'goodday-94';
 const GH_REPO  = 'youtube-dictation-app';
 
 function getGHSettings() {
