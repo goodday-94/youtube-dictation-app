@@ -67,6 +67,10 @@ body {
   flex-shrink: 0;
 }
 
+.header-title { display: flex; flex-direction: column; gap: 1px; }
+.header-title span { font-weight: 700; font-size: 11px; color: var(--text3); letter-spacing: 0.1em; text-transform: uppercase; }
+.header-title small { font-size: 10px; color: var(--text3); opacity: 0.6; font-weight: 400; text-transform: none; letter-spacing: 0; }
+
 .header-btns { display: flex; align-items: center; gap: 6px; }
 
 #btn-settings {
