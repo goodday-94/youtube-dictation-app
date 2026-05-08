@@ -1,4 +1,17 @@
 {
-  "videos": [],
-  "selected_video_id": null
+  "videos": [
+    {
+      "id": "17640b2d-f4bd-4e6e-ae29-c5887964dc17",
+      "videoId": "jcHvPmTTirU",
+      "url": "http://youtube.com/watch?v=jcHvPmTTirU&t=2s",
+      "title": "Can Gunnar Deatherage get you Gala-Ready for $100?",
+      "thumbnail": "https://img.youtube.com/vi/jcHvPmTTirU/mqdefault.jpg",
+      "status": "in_progress",
+      "added_at": "2026-05-08T04:24:01.954Z",
+      "last_opened_at": null,
+      "notes": "",
+      "notes_updated_at": null
+    }
+  ],
+  "selected_video_id": "17640b2d-f4bd-4e6e-ae29-c5887964dc17"
 }
